@@ -1,0 +1,45 @@
+#!/bin/bash
+
+
+PROJECT_CODE=$1
+CODE_REPO=/home/jamshi/workspace/foodtech/orchid_addons
+HOME=$CODE_REPO/$PROJECT_CODE
+
+
+if [ -d $HOME ]; then
+  echo "project directory with same project code already exists. change your project code"
+  exit 1
+fi
+mkdir -p $HOME/{report,wizard,models,views,security}
+
+cd $HOME
+touch __init__.py
+echo '# -*- coding: utf-8 -*-' >> $HOME/__init__.py
+echo 'import models' >> $HOME/__init__.py
+echo 'import wizard' >> $HOME/__init__.py
+echo 'import report' >> $HOME/__init__.py
+touch __openerp__.py
+
+echo '# -*- coding: utf-8 -*-' >> $HOME/__openerp__.py
+echo '{' >> $HOME/__openerp__.py
+echo "" >>$HOME/__openerp__.py
+echo "	'name': '${PROJECT_CODE^}'," >> $HOME/__openerp__.py
+echo "	'version': '1.0'," >> $HOME/__openerp__.py
+echo "	'category': 'Production'," >> $HOME/__openerp__.py
+echo "	'sequence': 1," >> $HOME/__openerp__.py
+echo "	'summary': '${PROJECT_CODE^}'," >> $HOME/__openerp__.py
+echo "	'author': 'OrchidERP'," >> $HOME/__openerp__.py
+echo "	'website': 'https://orchiderp.com'," >> $HOME/__openerp__.py
+echo "	'depends': ['base']," >> $HOME/__openerp__.py
+echo "	'data': []," >> $HOME/__openerp__.py
+echo "	'demo': []," >> $HOME/__openerp__.py
+echo "	'test': []," >> $HOME/__openerp__.py
+echo "	'installable': True," >> $HOME/__openerp__.py
+echo "	'auto_install': False," >> $HOME/__openerp__.py
+echo "	'application': True," >> $HOME/__openerp__.py
+echo "" >>$HOME/__openerp__.py
+echo '}' >> $HOME/__openerp__.py
+for dr in models report wizard; do
+	touch $dr/__init__.py
+
+done

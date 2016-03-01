@@ -1,0 +1,114 @@
+#!/bin/bash
+APP_CODE=newmod
+CODE_REPO=/home/jamshi/workspace/beta/orchid_addons
+HOME=$CODE_REPO/$APP_CODE
+
+model_name=second_wizard
+
+fname=second
+lname=wiz
+
+nums=2
+Fname="${fname^}"
+Lname="${lname^}"
+echo $Lname
+if [ -d $HOME ]; then
+  echo "project good to go......."
+else
+	echo "you dint start the project....please start the project before you begin"
+	exit 0
+fi
+
+if [ -f $HOME/wizard/$model_name.py ]; then
+ 	echo "the model with the same name already exist"
+	exit 0
+fi
+echo 'from openerp import models, fields, api' >> $HOME/wizard/$model_name.py
+echo 'from openerp.tools.translate import _' >> $HOME/wizard/$model_name.py
+echo "" >> $HOME/wizard/$model_name.py
+echo "class $fname$1_$lname(models.TransientModel):" >> $HOME/wizard/$model_name.py
+echo "	_name = '$fname.$lname'" >> $HOME/wizard/$model_name.py
+#echo "	_columns = {" >> $HOME/wizard/$model_name.py
+
+echo -e  "\n enter field name and type \n"
+for (( i=1; i <= $nums; i++ ))
+do
+read value typ
+eval field_$i=$value
+if [ "$typ" = "Many2one" ]
+then
+	echo "enter model name and string:"
+	read model string
+	echo "	$value = fields.$typ('$model','$string')" >> $HOME/wizard/$model_name.py
+
+elif [ "$typ" = "One2many" ]
+then
+	echo "enter model name and ref_column and string"
+	read model ref_col string
+	echo "	$value = fields.$typ('$model','$ref_col','$string')" >> $HOME/wizard/$model_name.py
+
+elif [ "$typ" = "Many2many" ]
+then
+	echo "enter model name ,mapping table, current object column, ref object column, string"
+	read model map_table cur_obj_col ref_obj_col string
+	echo "	$value = fields.$typ('$model','$map_table','$cur_obj_col', '$ref_obj_col','$string')" >> $HOME/wizard/$model_name.py
+
+elif [ "$typ" = "Selection" ]
+then
+	echo "enter selection item in format [('key1','value1')] and string"
+	read selection string
+	echo "	$value = fields.$typ($selection,'$string')" >> $HOME/wizard/$model_name.py
+else
+	echo "	$value = fields.$typ('${value^}')"  >> $HOME/wizard/$model_name.py
+fi
+done
+#echo "			}" >> $HOME/wizard/$model_name.py
+echo "import $model_name" >> $HOME/wizard/__init__.py
+
+if [ -f $HOME/views/$model_name.xml ]; then
+ 	echo "the view with the same name already exist please and check and correct it"
+	exit 0
+fi
+
+echo '<?xml version="1.0" encoding="UTF-8"?>' >> $HOME/views/$model_name.xml
+echo '<openerp>' >> $HOME/views/$model_name.xml
+echo '	<data>' >> $HOME/views/$model_name.xml
+echo '' >> $HOME/views/$model_name.xml
+echo '		<record model="ir.ui.view" id="'$fname'_'$lname'">' >> $HOME/views/$model_name.xml
+echo '		<field name="name">'$fname' '$lname' wizard</field>' >> $HOME/views/$model_name.xml
+echo '		<field name="model">'$fname'.'$lname'</field>' >> $HOME/views/$model_name.xml
+echo '		<field name="arch" type="xml">' >> $HOME/views/$model_name.xml
+echo '		<form string="'$Fname $Lname'" version="7.0">' >> $HOME/views/$model_name.xml
+echo '			<group>' >> $HOME/views/$model_name.xml
+
+
+for (( i=1; i <= $nums; i++ ))
+do
+echo '					<field name="'$(eval echo "$"field_$i)'" />' >> $HOME/views/$model_name.xml
+done
+
+echo '' >> $HOME/views/$model_name.xml
+echo '			</group>' >> $HOME/views/$model_name.xml
+echo '		</form>' >> $HOME/views/$model_name.xml
+echo '		</field>' >> $HOME/views/$model_name.xml
+echo '		</record>' >> $HOME/views/$model_name.xml
+echo '' >>$HOME/views/$model_name.xml
+
+echo '		<record id="action_'$fname'_'$lname'" model="ir.actions.act_window">' >> $HOME/views/$model_name.xml
+echo '		<field name="name">'$Fname' '$Lname'</field>' >> $HOME/views/$model_name.xml
+echo '		<field name="type">ir.actions.act_window</field>' >> $HOME/views/$model_name.xml
+echo '		<field name="res_model">'$fname'.'$lname'</field>' >> $HOME/views/$model_name.xml
+echo '		<field name="view_type">form</field>' >> $HOME/views/$model_name.xml
+echo '		<field name="view_mode">form</field>' >> $HOME/views/$model_name.xml
+echo '		<field name="view_id" ref="'$fname'_'$lname'"/>' >> $HOME/views/$model_name.xml
+echo '		<field name="target">new</field>' >> $HOME/views/$model_name.xml
+echo '		</record>' >> $HOME/views/$model_name.xml
+echo '' >> $HOME/views/$model_name.xml
+echo '		<menuitem name="'$Fname $Lname'"
+	  		id="menu_'$fname'_'$lname'"
+	  		parent="'$APP_CODE'_menu_general"
+            action="action_'$fname'_'$lname'" />' >> $HOME/views/$model_name.xml
+echo '' >> $HOME/views/$model_name.xml
+echo '' >> $HOME/views/$model_name.xml
+echo '	</data>' >> $HOME/views/$model_name.xml
+echo '</openerp>' >> $HOME/views/$model_name.xml
